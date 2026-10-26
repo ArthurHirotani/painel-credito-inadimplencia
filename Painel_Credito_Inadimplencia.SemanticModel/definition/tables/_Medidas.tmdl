@@ -1,0 +1,193 @@
+table _Medidas
+	lineageTag: d52a599c-8ffe-45fa-ab93-b39a322ae5b8
+
+	measure 'Valor Médio' =
+			
+			AVERAGE ( fSeries[Valor] )
+		formatString: #,0.00
+		lineageTag: f4e771be-ab79-4f8a-87be-7f24fcd27b92
+
+	measure 'Data Mais Recente' =
+			
+			MAX ( fSeries[Data] )
+		formatString: General Date
+		lineageTag: d2d06d89-5f19-4712-882b-3b9de0f41ef0
+
+	measure 'Valor Último' =
+			
+			VAR UltimaData = MAX ( fSeries[Data] )
+			RETURN
+			    CALCULATE ( AVERAGE ( fSeries[Valor] ), fSeries[Data] = UltimaData )
+		formatString: #,0.00
+		lineageTag: 5ee3331d-6323-4ec6-a17a-82651c9476ae
+
+	measure 'Valor 12 Meses Atrás' =
+			
+			VAR UltimaData = MAX ( fSeries[Data] )
+			RETURN
+			    CALCULATE (
+			        AVERAGE ( fSeries[Valor] ),
+			        REMOVEFILTERS ( dCalendario ),
+			        fSeries[Data] = EDATE ( UltimaData, -12 )
+			    )
+		formatString: #,0.00
+		lineageTag: 5f5e4d08-e73c-4b5b-9fdf-8c14535b6188
+
+	measure 'Variação 12m (p.p.)' =
+			
+			[Valor Último] - [Valor 12 Meses Atrás]
+		formatString: +0.0;-0.0;0.0
+		lineageTag: 1b4449cd-153d-463f-ad3b-f91205e18365
+
+	measure 'Média 12 Meses' =
+			
+			VAR UltimaData = MAX ( fSeries[Data] )
+			RETURN
+			    CALCULATE (
+			        AVERAGE ( fSeries[Valor] ),
+			        REMOVEFILTERS ( dCalendario ),
+			        fSeries[Data] > EDATE ( UltimaData, -12 ),
+			        fSeries[Data] <= UltimaData
+			    )
+		formatString: #,0.00
+		lineageTag: 4d7f850a-2730-4718-b41d-813ba0a4a3c7
+
+	measure 'Máxima Histórica' =
+			
+			CALCULATE ( MAX ( fSeries[Valor] ), REMOVEFILTERS ( dCalendario ) )
+		formatString: #,0.00
+		lineageTag: b96c14d8-06a9-439d-a137-a0e9699486b4
+
+	measure 'KPI Inadimplência PF' =
+			
+			CALCULATE ( [Valor Último], fSeries[Codigo] = 21084 )
+		formatString: 0.0\%
+		lineageTag: 13d6e6b6-d5f8-4f14-995b-f19d258f2a17
+
+	measure 'KPI Inadimplência PF Var 12m' =
+			
+			CALCULATE ( [Variação 12m (p.p.)], fSeries[Codigo] = 21084 )
+		formatString: +0.0\ \p\.\p\.;-0.0\ \p\.\p\.;0.0\ \p\.\p\.
+		lineageTag: 73be4f8e-2446-4c36-b1f9-b5e3f2dbd54d
+
+	measure 'KPI Juros PF (a.a.)' =
+			
+			CALCULATE ( [Valor Último], fSeries[Codigo] = 20716 )
+		formatString: 0.0\%\ \a\.\a\.
+		lineageTag: e7a7cdb4-f49f-44de-878f-5ddc998ba187
+
+	measure 'KPI Selic (a.a.)' =
+			
+			CALCULATE ( [Valor Último], fSeries[Codigo] = 4189 )
+		formatString: 0.00\%\ \a\.\a\.
+		lineageTag: 72b4d4b4-a727-4644-9bc5-4b896d44d1f3
+
+	measure 'KPI Endividamento Famílias' =
+			
+			CALCULATE ( [Valor Último], fSeries[Codigo] = 29037 )
+		formatString: 0.0\%
+		lineageTag: 2aab2ec9-b523-4343-a485-1c7dede70fbe
+
+	measure 'KPI Saldo Crédito PF (R$ tri)' =
+			
+			CALCULATE ( [Valor Último], fSeries[Codigo] = 20541 ) / 1000000
+		formatString: \R\$\ 0.00\ \t\r\i
+		lineageTag: 6dcbab58-f490-47c8-ac8e-dbd9f708a9a6
+
+	measure 'Spread PF x Selic (p.p.)' =
+			
+			[KPI Juros PF (a.a.)] - [KPI Selic (a.a.)]
+		formatString: 0.0\ \p\.\p\.
+		lineageTag: 973721b2-d6d0-4164-92d9-7b91f5349f93
+
+	measure 'Texto Atualização' =
+			
+			"Dados até " & FORMAT ( CALCULATE ( MAX ( fSeries[Data] ), fSeries[Codigo] = 21084 ), "MMMM/YYYY" )
+			    & " | Fonte: Banco Central do Brasil (SGS)"
+		lineageTag: 6190ed52-0d67-4a35-9e3d-15036e01f0ae
+
+	measure 'Texto Inadimplência' =
+			
+			VAR v = [KPI Inadimplência PF]
+			VAR d = [KPI Inadimplência PF Var 12m]
+			RETURN
+			    "A inadimplência das pessoas físicas está em " & FORMAT ( v, "0.0" ) & "%, "
+			        & IF ( d >= 0, "alta", "queda" ) & " de " & FORMAT ( ABS ( d ), "0.0" )
+			        & " p.p. em 12 meses."
+		lineageTag: 2fbbc833-cfde-4f9e-b8dd-5f66996f12ec
+
+	measure 'Cor Variação' =
+			
+			IF ( [Variação 12m (p.p.)] > 0, "#C0392B", "#1E8449" )
+		lineageTag: babcd63c-92d0-4922-af0f-21a6ed75ba10
+
+	measure Selic =
+			
+			CALCULATE ( [Valor Médio], fSeries[Codigo] = 4189 )
+		formatString: 0.00
+		lineageTag: aaf6222f-acdd-4b79-acf8-9ada85978ed6
+
+	measure 'Inadimplência PF' =
+			
+			CALCULATE ( [Valor Médio], fSeries[Codigo] = 21084 )
+		formatString: 0.00
+		lineageTag: 2dbd3582-12c3-44c3-805f-53106ebdd05c
+
+	measure 'Juros Cartão (a.m.)' =
+			
+			CALCULATE ( [Valor Médio], fSeries[Codigo] = 25479 )
+		formatString: 0.00
+		lineageTag: 2166a8a0-c268-4d5d-909f-5adeb4a5a0ca
+
+	measure 'Inadimplência Cartão' =
+			
+			CALCULATE ( [Valor Médio], fSeries[Codigo] = 21129 )
+		formatString: 0.00
+		lineageTag: 2e1465dc-01b6-4bb0-ad53-f9d8d497c455
+
+	measure 'Texto Modalidade' =
+			
+			VAR Tab =
+			    ADDCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( fSeries[Indicador] ),
+			            fSeries[Codigo] IN { 21129, 21114, 21119, 21123 }
+			        ),
+			        "@v", [Valor Último]
+			    )
+			VAR MaiorNome = SUBSTITUTE ( MAXX ( TOPN ( 1, Tab, [@v], DESC ), fSeries[Indicador] ), "Inadimplência PF - ", "" )
+			VAR MaiorV = MAXX ( Tab, [@v] )
+			VAR MenorNome = SUBSTITUTE ( MAXX ( TOPN ( 1, Tab, [@v], ASC ), fSeries[Indicador] ), "Inadimplência PF - ", "" )
+			VAR MenorV = MINX ( Tab, [@v] )
+			RETURN
+			    MaiorNome & " tem a maior inadimplência (" & FORMAT ( MaiorV, "0.0" ) & "%), "
+			        & FORMAT ( DIVIDE ( MaiorV, MenorV ), "0.0" ) & " vezes a de " & LOWER ( MenorNome )
+			        & " (" & FORMAT ( MenorV, "0.0" ) & "%)."
+		lineageTag: a391ccaf-f43c-4a9f-9528-cb8befe9b586
+
+	measure 'Texto Juros' =
+			
+			"A Selic está em " & FORMAT ( [KPI Selic (a.a.)], "0.00" ) & "% a.a. e os juros médios do crédito PF em "
+			    & FORMAT ( [KPI Juros PF (a.a.)], "0.0" ) & "% a.a.: o crédito às famílias custa "
+			    & FORMAT ( [Spread PF x Selic (p.p.)], "0.0" ) & " p.p. acima da taxa básica."
+		lineageTag: b1664990-1bd6-4a4e-99b4-609f40bfe474
+
+	column 'Coluna 1'
+		dataType: string
+		isHidden
+		lineageTag: e3412ba7-8650-4c8e-a248-d5597326ac71
+		summarizeBy: none
+		sourceColumn: Coluna 1
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Medidas = m
+		mode: import
+		source =
+				let
+				  Origem = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Coluna 1" = _t])
+				in
+				  Origem
+
+	annotation PBI_ResultType = Table
+

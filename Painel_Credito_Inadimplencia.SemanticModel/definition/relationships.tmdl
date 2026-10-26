@@ -1,0 +1,4 @@
+relationship 53afaef9-7dce-5655-b710-dde0acb03fcb
+	fromColumn: fSeries.Data
+	toColumn: dCalendario.Date
+
