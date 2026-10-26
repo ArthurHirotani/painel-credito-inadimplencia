@@ -55,7 +55,6 @@ Fonte: [Portal de Dados Abertos do Banco Central](https://dadosabertos.bcb.gov.b
 - `Painel_Credito_Inadimplencia.SemanticModel/` - modelo, consultas e medidas em formato TMDL
 - `1_PowerQuery_fSeries.pq` - código M da extração
 - `2_Medidas_DAX.dax` - medidas e tabela calendário
-- `3_Diagnostico.pq` - consulta usada para identificar falhas da API
 - `imagens/` - prints das páginas
 
 ![Por modalidade](imagens/por-modalidade.png)
